@@ -61,13 +61,18 @@ class WeaveStruct:
   def matches(self, w):
     return listsMatch(self.data, w.data)
   
+  # returns a copy with all cells = val set to -1
+  # if val = -1, all cells are unset
   def unsetAll(self, val = 0):
-    res = self.copy()
-    for row in range(self.size):
-      for x in range(self.size):
-        if (self.data[row][x] == val):
-          res.data[row][x] = -1
-    return res
+    if (val < 0):
+      return WeaveStruct(self.size).data
+    else:
+      res = self.copy()
+      for row in range(self.size):
+        for x in range(self.size):
+          if (self.data[row][x] == val):
+            res.data[row][x] = -1
+      return res
 
   # returns a row-shifted copy (shifted down n rows)
   def rowShift(self, n):
@@ -78,11 +83,11 @@ class WeaveStruct:
 
   # returns copy shifted right n rows
   def colShift(self, n):
-    return self.rotate().rowShift(n).rotate(self.size - 1)
+    return self.rotate().rowShift(n).rotate(-1)
 
   # returns a copy rotated 90 degrees CCW N times
   def rotate(self, n = 1):
-    x = n % 4
+    x = (n+4) % 4
     if (x <= 0): return self.copy()
     else:
       res = WeaveStruct(self.size)
@@ -121,10 +126,6 @@ class WeaveStruct:
       s = s.rowShift(1)
       if (s.matches(w)): return True
     return False
-    # try:
-    #   pos = self.data.index(w.data[0])
-    #   return w.matches(self.rowShift(pos))
-    # except: return False
 
   def isColShift(self, w):
     return self.rotate().isRowShift(w.rotate())
