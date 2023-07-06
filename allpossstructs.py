@@ -284,7 +284,7 @@ class StructDict:
         #     break
         # if (not isShift):
         newId = len(self.data)
-        self.data[newKey] = StructDictEntry(struct, len(self.data))
+        self.data[newKey] = StructDictEntry(struct, newId)
         for i in range(self.size):
           for j in range(self.size):
             w = struct.rowShift(i).colShift(j)
