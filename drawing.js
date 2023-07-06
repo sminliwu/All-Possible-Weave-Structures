@@ -27,37 +27,51 @@ class WeaveStruct extends WeaveStructData {
   get graphicSize() { return this.size*this.cellSize; }
 
   blackCell(x, y, stroke=false) {
-    if (stroke) stroke(0);
-    fill(0);
-    square(x, y, this.cellSize);
+    // if (stroke) stroke(0);
+    // fill(0);
+    // square(x, y, this.cellSize);
+
+    if (stroke) buf.stroke(0);
+    buf.fill(0);
+    buf.square(x, y, this.cellSize);
   }
 
   whiteCell(x, y, stroke=false) {
-    if (stroke) stroke(0);
-    fill(255);
-    square(x, y, this.cellSize);
+    // if (stroke) stroke(0);
+    // fill(255);
+    // square(x, y, this.cellSize);
+
+    if (stroke) buf.stroke(0);
+    buf.fill(255);
+    buf.square(x, y, this.cellSize);
   }
 
   unsetCell(x, y, stroke=false) {
-    stroke(0);
+    buf.stroke(0);
     if (stroke) {
-      noFill();
-      square(x, y, this.cellSize);
+      buf.noFill();
+      buf.square(x, y, this.cellSize);
     }
-    line(x, y, x+this.cellSize, y+this.cellSize);
+    buf.line(x, y, x+this.cellSize, y+this.cellSize);
   }
 
   outline() {
-    stroke(0);
-    noFill();
-    square(this.x, this.y, this.graphicSize);
+    // stroke(0);
+    // noFill();
+    // square(this.x, this.y, this.graphicSize);
+
+    // buf.stroke(0);
+    // buf.noFill();
+    // buf.square(0, 0, this.graphicSize);
   }
 
   draw() {
-    noStroke();
+    buf.loadPixels();
+    buf.noStroke();
     for (let row=0; row<this.size; row++) {
       for (let col=0; col<this.size; col++) {
-        let args = [ this.x+col*this.cellSize, this.y+row*this.cellSize ];
+        // let args = [ this.x+col*this.cellSize, this.y+row*this.cellSize ];
+        let args = [ col*this.cellSize, row*this.cellSize ];
   
         switch (this.data[row][col]) {
           case -1:
@@ -77,13 +91,21 @@ class WeaveStruct extends WeaveStructData {
     this.outline();
     for (let i=1; i<this.size; i++) {
       // horizontal line
-      let ypos = this.y+i*this.cellSize;
-      line(this.x, ypos, this.x+this.graphicSize, ypos);
+      // let ypos = this.y+i*this.cellSize;
+      // line(this.x, ypos, this.x+this.graphicSize, ypos);
+      let ypos = i*this.cellSize;
+      buf.line(0, ypos, this.graphicSize, ypos);
 
       // vertical line
-      let xpos = this.x+i*this.cellSize;
-      line(xpos, this.y, xpos, this.y+this.graphicSize);
+      // let xpos = this.x+i*this.cellSize;
+      // line(xpos, this.y, xpos, this.y+this.graphicSize);
+      let xpos = i*this.cellSize;
+      buf.line(xpos, 0, xpos, this.graphicSize);
     }
+  }
+
+  show() {
+    image(buf, this.x, this.y);
   }
 }
 
@@ -227,7 +249,7 @@ function drawStructList(structs, startX, startY, rowLength = 36/structs[0].size,
     currentX = newPos[0];
     currentY = newPos[1];
 
-    redraw();
+    // redraw();
   }
 
   // return y pos below the last row for any additional struct lists

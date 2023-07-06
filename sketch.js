@@ -18,7 +18,8 @@ const gapSize = padding*CELL_SIZE;
 
 // let wc, bc, uc;
 // let cx;
-let buf;
+/** @type {import("../../../.vscode/extensions/samplavigne.p5-vscode-1.2.13/p5types/index").Graphics} */
+let buf; 
 let currentX, currentY;
 
 function setup() {
@@ -27,8 +28,8 @@ function setup() {
 
   // noLoop();
   background(220);
-  noSmooth();
-  frameRate(60);
+  // noSmooth();
+  // frameRate(60);
 
   rowLength = floor(width/(DRAFT_SIZE*CELL_SIZE+padding*CELL_SIZE)) - 1;
   
@@ -46,19 +47,27 @@ function setup() {
 
   buf = createGraphics(allFills[0].graphicSize, allFills[0].graphicSize);
   console.log("drawing now");
+
+  [currentX, currentY] = drawStructOfList(allFills[0], 0, currentX, currentY, rowLength, CELL_SIZE, startX, gapSize);
 }
 
+const drawOnce = false;
+
 function draw() {
-  // console.log(width);
-  // let row = floor(width/(DRAFT_SIZE*CELL_SIZE+padding*CELL_SIZE)) - 1;
-  // console.log(row);
-  // drawStructList(allFills, CELL_SIZE, CELL_SIZE, row);
-  if (doneFilling) { noLoop(); }
-  else {
-    let i = counter;
-    [currentX, currentY] = drawStructOfList(allFills[i], i, currentX, currentY, rowLength, CELL_SIZE, startX, gapSize);
-    counter++;
-    if (counter == allFills.length) { doneFilling = true; }
+  if (drawOnce) {
+    drawStructList(allFills, startX, startY, rowLength);
+    noLoop();
+  } else {
+    if (doneFilling) { noLoop(); }
+    else {
+      let i = counter;
+      console.log(i);
+      allFills[i].show();
+      [currentX, currentY] = drawStructOfList(allFills[i+1], i, currentX, currentY, rowLength, CELL_SIZE, startX, gapSize);
+      counter++;
+
+      if (counter == allFills.length) { doneFilling = true; }
+    }
   }
 }
 
