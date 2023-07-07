@@ -1,6 +1,6 @@
 // drawing helper functions for P5.js
 
-var CELL_SIZE = 5;
+var CELL_SIZE = 8;
 var padding = 1;
 var BACKGROUND_COLOR = 220;
 
@@ -66,8 +66,9 @@ class WeaveStruct extends WeaveStructData {
   }
 
   draw() {
-    buf.loadPixels();
-    buf.noStroke();
+    // buf.loadPixels();
+    // buf.noStroke();
+
     for (let row=0; row<this.size; row++) {
       for (let col=0; col<this.size; col++) {
         // let args = [ this.x+col*this.cellSize, this.y+row*this.cellSize ];

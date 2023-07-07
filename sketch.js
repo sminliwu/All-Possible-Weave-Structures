@@ -28,6 +28,7 @@ function setup() {
 
   // noLoop();
   background(220);
+  pixelDensity(1);
   // noSmooth();
   // frameRate(60);
 
@@ -46,6 +47,7 @@ function setup() {
   // categorizeFills(allFills);
 
   buf = createGraphics(allFills[0].graphicSize, allFills[0].graphicSize);
+  buf.pixelDensity(1);
   console.log("drawing now");
 
   [currentX, currentY] = drawStructOfList(allFills[0], 0, currentX, currentY, rowLength, CELL_SIZE, startX, gapSize);
@@ -54,6 +56,8 @@ function setup() {
 const drawOnce = false;
 
 function draw() {
+  rect(0, 0, 70, 30);
+  text(counter, 10, 20);
   if (drawOnce) {
     drawStructList(allFills, startX, startY, rowLength);
     noLoop();
@@ -61,7 +65,7 @@ function draw() {
     if (doneFilling) { noLoop(); }
     else {
       let i = counter;
-      console.log(i);
+      // console.log(i);
       allFills[i].show();
       [currentX, currentY] = drawStructOfList(allFills[i+1], i, currentX, currentY, rowLength, CELL_SIZE, startX, gapSize);
       counter++;
