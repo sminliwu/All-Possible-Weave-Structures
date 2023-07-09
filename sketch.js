@@ -3,74 +3,71 @@
  */
 
 const DRAFT_SIZE = 4;
+const BUFFER_SIZE = 50;
 
-var allFills;
+let structs;
+/** @type {HTMLCanvasElement} */
+let cx;
 
-var counter = 0;
-var doneFilling = false;
-var doneCategorizing = false;
-
-var rowLength;
-
-const startX = CELL_SIZE;
-const startY = CELL_SIZE;
-const gapSize = padding*CELL_SIZE;
-
-// let wc, bc, uc;
-// let cx;
-/** @type {import("../../../.vscode/extensions/samplavigne.p5-vscode-1.2.13/p5types/index").Graphics} */
-let buf; 
-let currentX, currentY;
+// animation state
+let doneFilling = false;
+let doneCategorizing = false;
 
 function setup() {
-  createCanvas(windowWidth, 13*windowHeight);
-  // setupBuffers();
-
-  // noLoop();
+  createCanvas(window.innerWidth, windowHeight);
   background(220);
-  pixelDensity(1);
-  // noSmooth();
-  // frameRate(60);
 
-  rowLength = floor(width/(DRAFT_SIZE*CELL_SIZE+padding*CELL_SIZE)) - 1;
-  
-  currentX = startX + gapSize;
-  currentY = startY + gapSize;
+  // paraphrasing Chrome console message: "Canvas2D will load faster if this drawing context has the 'willReadFrequently' boolean set to true"
+  // cx.getContext('2d', { willReadFrequently: true });
+  cx = document.getElementById('defaultCanvas0');
+  console.log(cx);
 
-  allFills = allPossFills(new WeaveStruct(DRAFT_SIZE));
+  let blankStruct = new WeaveStruct(DRAFT_SIZE);
+
+  let allFills = allPossFills(blankStruct);
   allFills = allFills.filter(x => x.isValid());
+  allFills.sort((a, b) => a.toString()-b.toString());
   allFills = allFills.map((x, i) => {
     x.id = i;
     return x;
   });
-  console.log(allFills);
-  // categorizeFills(allFills);
 
-  buf = createGraphics(allFills[0].graphicSize, allFills[0].graphicSize);
-  buf.pixelDensity(1);
+  console.log(allFills.length);
+
+  structs = new StructList();
+  structs.setup(allFills);
+
+  console.log(structs.length);
+  
+  let adjustWidth = cx.parentElement.clientWidth;
+  let newHeight = (ceil(structs.length/structs.rowLength)+1)*(structs.graphicSize+structs.gapSize);
+  resizeCanvas(adjustWidth, newHeight);
+  
   console.log("drawing now");
 
-  [currentX, currentY] = drawStructOfList(allFills[0], 0, currentX, currentY, rowLength, CELL_SIZE, startX, gapSize);
+  for (let i=0; i<structs.buffers.length; i++) {
+    structs.draw(i);
+  }
+  // console.log(structs.buffers);
 }
 
 const drawOnce = false;
 
 function draw() {
+  // noLoop();
+  // return;
+
   rect(0, 0, 70, 30);
-  text(counter, 10, 20);
+  text(structs.counter, 10, 20);
   if (drawOnce) {
-    drawStructList(allFills, startX, startY, rowLength);
+    drawStructList(structs, startX, startY, rowLength);
     noLoop();
   } else {
     if (doneFilling) { noLoop(); }
     else {
-      let i = counter;
-      // console.log(i);
-      allFills[i].show();
-      [currentX, currentY] = drawStructOfList(allFills[i+1], i, currentX, currentY, rowLength, CELL_SIZE, startX, gapSize);
-      counter++;
+      structs.step(BUFFER_SIZE);
 
-      if (counter == allFills.length) { doneFilling = true; }
+      if (structs.counter == structs.length) { doneFilling = true; }
     }
   }
 }

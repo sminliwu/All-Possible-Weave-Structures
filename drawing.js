@@ -1,78 +1,100 @@
 // drawing helper functions for P5.js
 
-var CELL_SIZE = 8;
+let CELL_SIZE = 5;
 var padding = 1;
 var BACKGROUND_COLOR = 220;
 
-/** @type enum */
-// const numStyle = {
-//   'NONE',
-//   'TOP_LEFT',
-//   'TOP',
-//   'BOTTOM',
-//   'LEFT'
-// }
-
 /** wrapper around WeaveStruct for P5 drawing */
 class WeaveStruct extends WeaveStructData {
-  constructor(size = DRAFT_SIZE, id = -1, xpos = -1, ypos = -1, cellSize = CELL_SIZE) {
+  constructor(size = DRAFT_SIZE, id = -1, xpos = -1, ypos = -1, cellSize = CELL_SIZE, buf = undefined) {
     super(size);
     this.id = id;
     this.x = xpos;
     this.y = ypos;
     this.cellSize = cellSize;
+
+    this.img = buf;
     // console.log(this);
   }
 
-  get graphicSize() { return this.size*this.cellSize; }
+  get graphicSize() { return this.size*this.cellSize+1; }
 
-  blackCell(x, y, stroke=false) {
-    // if (stroke) stroke(0);
-    // fill(0);
-    // square(x, y, this.cellSize);
+  setBWpixels(x, y, bw) {
+    const pixels = this.img.pixels;
+    const d = 1 // why is pixel density actually 1?
+    const imgWidth = this.graphicSize*d;
 
-    if (stroke) buf.stroke(0);
-    buf.fill(0);
-    buf.square(x, y, this.cellSize);
+    let idxA = y*imgWidth + x*d;
+    let points = [idxA]
+
+    // for (let i=0; i<d; i++) { points.push(idxA + i); }
+    // let row = Array.from(points);
+    // for (let j=1; j<d; j++) { 
+    //   row = row.map(x => x+imgWidth);
+    //   points = points.concat(row);
+    // }
+    // console.log(points);
+
+    points.map((x) => {
+      let i = 4*x;
+      pixels[i] = bw;
+      pixels[i+1] = bw;
+      pixels[i+2] = bw;
+      pixels[i+3] = 255;
+    })
   }
 
-  whiteCell(x, y, stroke=false) {
-    // if (stroke) stroke(0);
-    // fill(255);
-    // square(x, y, this.cellSize);
+  setCellPixels(col, row, val) {
+    const startX = col*this.cellSize;
+    const startY = row*this.cellSize;
+    const endX = startX + this.cellSize;
+    const endY = startY + this.cellSize;
 
-    if (stroke) buf.stroke(0);
-    buf.fill(255);
-    buf.square(x, y, this.cellSize);
+    // console.log(startX, startY, endX, endY);
+
+    for (let x=startX; x<endX; x++) {
+      for (let y=startY; y<endY; y++) {
+        this.setBWpixels(x, y, val);
+      }
+    }
+  }
+
+  blackCell(col, row, stroke=false) {  
+    this.setCellPixels(col, row, 0);
+  }
+
+  whiteCell(col, row, stroke=false) {
+    this.setCellPixels(col, row, 255);
   }
 
   unsetCell(x, y, stroke=false) {
-    buf.stroke(0);
-    if (stroke) {
-      buf.noFill();
-      buf.square(x, y, this.cellSize);
-    }
-    buf.line(x, y, x+this.cellSize, y+this.cellSize);
+    const buf = this.img;
+
+    // buf.stroke(0);
+    // if (stroke) {
+    //   buf.noFill();
+    //   buf.square(x, y, this.cellSize);
+    // }
+
+    // buf.line(x, y, x+this.cellSize, y+this.cellSize);
   }
 
   outline() {
-    // stroke(0);
-    // noFill();
-    // square(this.x, this.y, this.graphicSize);
-
-    // buf.stroke(0);
-    // buf.noFill();
-    // buf.square(0, 0, this.graphicSize);
+    for (let edge=0; edge<=this.size; edge++) {
+      for (let i=0; i<this.graphicSize; i++) {
+        this.setBWpixels(i, edge*this.cellSize, 0);
+        this.setBWpixels(edge*this.cellSize, i, 0);
+      }
+    }
   }
 
   draw() {
-    // buf.loadPixels();
-    // buf.noStroke();
+    const buf = this.img;
+    buf.loadPixels();
 
     for (let row=0; row<this.size; row++) {
       for (let col=0; col<this.size; col++) {
-        // let args = [ this.x+col*this.cellSize, this.y+row*this.cellSize ];
-        let args = [ col*this.cellSize, row*this.cellSize ];
+        let args = [ col, row ];
   
         switch (this.data[row][col]) {
           case -1:
@@ -90,135 +112,133 @@ class WeaveStruct extends WeaveStructData {
       }
     }
     this.outline();
-    for (let i=1; i<this.size; i++) {
-      // horizontal line
-      // let ypos = this.y+i*this.cellSize;
-      // line(this.x, ypos, this.x+this.graphicSize, ypos);
-      let ypos = i*this.cellSize;
-      buf.line(0, ypos, this.graphicSize, ypos);
 
-      // vertical line
-      // let xpos = this.x+i*this.cellSize;
-      // line(xpos, this.y, xpos, this.y+this.graphicSize);
-      let xpos = i*this.cellSize;
-      buf.line(xpos, 0, xpos, this.graphicSize);
-    }
+    buf.updatePixels();
+    // this.show();
   }
 
   show() {
-    image(buf, this.x, this.y);
+    image(this.img, this.x, this.y);
   }
 }
 
-function setupBuffers() {
-  wc = createGraphics(CELL_SIZE, CELL_SIZE);
-  // wc.stroke(0);
-  wc.fill(255);
-  wc.square(0,0,CELL_SIZE);
-
-  bc = createGraphics(CELL_SIZE, CELL_SIZE);
-  // bc.stroke(0);
-  bc.fill(0);
-  bc.square(0,0,CELL_SIZE);
-
-  uc = createGraphics(CELL_SIZE, CELL_SIZE);
-  // uc.stroke(0);
-  uc.noFill();
-  uc.line(0,0, CELL_SIZE, CELL_SIZE);
-  uc.square(0,0,CELL_SIZE);
-}
-
 /**
- * 
- * @param {number} x 
- * @param {number} y 
- * @param {number} size 
- * @returns 
+ * wrapper class for a list of WeaveStructs to render
+ * in P5
  */
-function whiteDraftCell(x, y, size=CELL_SIZE) {
-  // stroke(0);
-  // fill(255);
-  // square(x, y, size);
+class StructList extends Array {
+  constructor(length = 0) {
+    super(length);
 
-  // for (let i=0; i<size; i++) {
-  //   for (let j=0; j<size; j++) {
-  //     if (i == 0 || j == 0 || i == size-1 || j == size-1) {
-  //       set(x+i, y+j, color(0));
-  //     }
-  //     else { set(x+i, y+j, color(255))};
-  //   }
-  // }
-  // updatePixels();
+    this.structSize;
+    this.rowLength;
+    this.cellSize;
+    this.gapSize;
 
-  image(wc, x, y);
-}
+    this.start = [0, 0];
+    this.current = [0, 0];
 
-/**
- * 
- * @param {number} x 
- * @param {number} y 
- * @param {number} size 
- * @returns 
- */
-function blackDraftCell(x, y, size=CELL_SIZE) {
-  // stroke(0);
-  // fill(0);
-  // return square(x, y, size);
+    this.buffers = [];
+    this.loadSpeed = 100;
+    this.counter = 0;
+  }
+    
+  /**
+   * 
+   * @param {Array<WeaveStruct>} preload 
+   * @param {*} buf 
+   * @param {*} cellSize 
+   * @param {*} gapSize 
+   * @param {*} width 
+   */
+  setup(preload, buf = BUFFER_SIZE, cellSize = CELL_SIZE, gapSize = CELL_SIZE) {
+    this.cellSize = cellSize;
+    this.gapSize = gapSize;
 
-  // for (let i=0; i<size; i++) {
-  //   for (let j=0; j<size; j++) {
-  //     set(x+i, y+j, color(0));
-  //   }
-  // }
-  // updatePixels();
+    for (let s of preload) {
+      // s.img = this.buffers[s.id % this.buffers.length];
+      this.push(s);
+    }
 
-  copy(bc, x, y);
-}
+    this.bufferPointer = 0;
+    this.setupBuffers(buf);
+    this.map((x, i) => {
+      x.img = this.buffers[x.id % this.buffers.length];
+    })
 
-/**
- * 
- * @param {number} x 
- * @param {number} y 
- * @param {number} size 
- * @returns 
- */
-function unsetDraftCell(x, y, size=CELL_SIZE) {
-  stroke(0);
-  noFill();
-  square(x, y, size);
-  return line(x, y, x+size, y+size);
-}
+    this.structSize = this[0].size;
+    this.rowLength = this.calcRowLength(width);
+    console.log(this.rowLength);
 
-/**
- * 
- * @param {WeaveStruct} struct 
- * @param {number} startX 
- * @param {number} startY 
- * @param {number} cellSize 
- */
-function drawWeaveStruct(struct, startX, startY, cellSize = CELL_SIZE) {
-  let parts = [];
-  for (let row=0; row<struct.size; row++) {
-    for (let col=0; col<struct.size; col++) {
-      let args = [ startX+col*cellSize, startY+row*cellSize, cellSize ];
+    this.start = [this.gapSize, this.gapSize];
+    this.current = [this.cellSize, this.cellSize];
+  }
 
-      switch (struct.data[row][col]) {
-        case -1:
-          unsetDraftCell(...args);
-          break;
-        case 0:
-          whiteDraftCell(...args);
-          break;
-        case 1:
-          blackDraftCell(...args);
-          break;
-        default:
-          break;
+  get startX() { return this.start[0]; }
+  get startY() { return this.start[1]; }
+
+  get curX() { return this.current[0]; }
+  set curX(x) { this.current[0] = x; }
+
+  get curY() { return this.current[1]; }
+  set curY(y) { this.current[1] = y; }
+
+  get graphicSize() { 
+    if (this.length > 0) { return this[0].graphicSize; }
+    else { return 0; }
+  }
+
+  get nextBuffer() { return this.counter + this.buffers.length; }
+
+  calcRowLength(displayWidth) {
+    if (this.structSize) {
+      return floor(displayWidth/(this.graphicSize+this.gapSize)) - 1;
+    } else { return 0; }
+  }
+
+  setupBuffers(num = BUFFER_SIZE) {
+    let imgSize = this.graphicSize;
+    this.buffers = [];
+    for (let i=0; i<num; i++) {
+      this.buffers.push(createImage(imgSize, imgSize));
+    }
+    this.buffers.map(x => x.loadPixels());
+    this.bufferPointer = 0;
+  }
+
+  /**
+   * 
+   * @param {number} index 
+   */
+  draw(index) {
+    if (index < 0) {} // draw all
+    else {
+      /** @type {WeaveStruct} */
+      let struct = this[index];
+
+      struct.x = this.curX;
+      struct.y = this.curY;
+    
+      if (struct.id > 0 && struct.id%this.rowLength == 0) {
+        struct.x = this.startX;
+        struct.y += struct.graphicSize + this.gapSize;
       }
+    
+      struct.draw();
+
+      this.current = [ struct.x + struct.graphicSize + this.gapSize, struct.y ];    
     }
   }
 
-  return parts;
+  step(n=1) {
+    if (n > this.buffers.length) { return; }
+    for (let i=0; i<n; i++) {
+      if (this.counter == this.length) { return; }
+      this[this.counter].show();
+      if (this.nextBuffer < this.length) { this.draw(this.nextBuffer); }
+      this.counter++;
+    }
+  }
 }
 
 /**
@@ -246,31 +266,14 @@ function drawStructList(structs, startX, startY, rowLength = 36/structs[0].size,
     // drawWeaveStruct(structs[i], currentX, currentY, cellSize);
     // currentX += structSize*cellSize + gapSize;
 
-    let newPos = drawStructOfList(structs[i], i, currentX, currentY, rowLength, cellSize, startX, gapSize);
-    currentX = newPos[0];
-    currentY = newPos[1];
-
-    // redraw();
+    [currentX, currentY] = drawStructOfList(structs[i], currentX, currentY, rowLength, startX, gapSize);
   }
 
   // return y pos below the last row for any additional struct lists
   return currentY + structSize*cellSize + gapSize;
 }
 
-function drawStructOfList(struct, i, inputX, inputY, rowLength, cellSize, startX, gapSize) {
-  // let outputX = inputX;
-  // let outputY = inputY;
-
-  // if (i>0 && i%rowLength == 0) {
-  //   outputX = startX + gapSize;
-  //   outputY += struct.size*cellSize + gapSize;
-  // }
-
-  // drawWeaveStruct(struct, outputX, outputY, cellSize);
-  // outputX += struct.size*cellSize + gapSize;
-
-  // return [ outputX, outputY ];
-
+function drawStructOfList(struct, inputX, inputY, rowLength, startX, gapSize) {
   struct.x = inputX;
   struct.y = inputY;
 
