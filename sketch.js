@@ -2,19 +2,20 @@
  * The P5.js stuff
  */
 
-const DRAFT_SIZE = 4;
+const DRAFT_SIZE = 3;
 const BUFFER_SIZE = 50;
 
 let structs;
 /** @type {HTMLCanvasElement} */
-let cx;
+let cx, cv;
 
 // animation state
 let doneFilling = false;
 let doneCategorizing = false;
 
 function setup() {
-  createCanvas(window.innerWidth, windowHeight);
+  cv = createCanvas(window.innerWidth, windowHeight);
+  cv.parent('canvas');
   background(220);
 
   // paraphrasing Chrome console message: "Canvas2D will load faster if this drawing context has the 'willReadFrequently' boolean set to true"
@@ -37,7 +38,7 @@ function setup() {
   structs = new StructList();
   structs.setup(allFills);
 
-  console.log(structs.length);
+  // console.log(structs.length);
   
   let adjustWidth = cx.parentElement.clientWidth;
   let newHeight = (ceil(structs.length/structs.rowLength)+1)*(structs.graphicSize+structs.gapSize);
@@ -58,9 +59,10 @@ function draw() {
   // return;
 
   rect(0, 0, 70, 30);
-  text(structs.counter, 10, 20);
+  text(round(frameRate(), 2), 10, 20);
   if (drawOnce) {
-    drawStructList(structs, startX, startY, rowLength);
+    // drawStructList(structs, startX, startY, rowLength);
+    structs.drawAll();
     noLoop();
   } else {
     if (doneFilling) { noLoop(); }

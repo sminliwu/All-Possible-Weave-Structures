@@ -1,6 +1,6 @@
 // drawing helper functions for P5.js
 
-let CELL_SIZE = 5;
+let CELL_SIZE = 12;
 var padding = 1;
 var BACKGROUND_COLOR = 220;
 
@@ -67,6 +67,7 @@ class WeaveStruct extends WeaveStructData {
     this.setCellPixels(col, row, 255);
   }
 
+  // NOT CURRENTLY USED
   unsetCell(x, y, stroke=false) {
     const buf = this.img;
 
@@ -137,10 +138,10 @@ class StructList extends Array {
 
     this.start = [0, 0];
     this.current = [0, 0];
+    this.counter;
 
     this.buffers = [];
     this.loadSpeed = 100;
-    this.counter = 0;
   }
     
   /**
@@ -170,8 +171,13 @@ class StructList extends Array {
     this.rowLength = this.calcRowLength(width);
     console.log(this.rowLength);
 
+    this.restart();    
+  }
+
+  restart() {
     this.start = [this.gapSize, this.gapSize];
     this.current = [this.cellSize, this.cellSize];
+    this.counter = 0;
   }
 
   get startX() { return this.start[0]; }
@@ -231,7 +237,7 @@ class StructList extends Array {
   }
 
   step(n=1) {
-    if (n > this.buffers.length) { return; }
+    // if (n > this.buffers.length) { return; }
     for (let i=0; i<n; i++) {
       if (this.counter == this.length) { return; }
       this[this.counter].show();
@@ -239,49 +245,12 @@ class StructList extends Array {
       this.counter++;
     }
   }
-}
 
-/**
- * @param {Array<WeaveStruct>} structs 
- * @param {number} startX
- * @param {number} startY
- * @param {number} rowLength 
- * @param {number} cellSize 
- * @param {number} gapSize 
- * @param {numStyle} numbering 
- */
-function drawStructList(structs, startX, startY, rowLength = 36/structs[0].size, cellSize = CELL_SIZE, gapSize = padding*cellSize, numbering = 'NONE') {
-  const structSize = structs[0].size;
-  let currentX = startX + gapSize;
-  let currentY = startY + gapSize;
-
-  for (let i=0; i<structs.length; i++) {
-    // // todo: handle numbering?
-    // if (numbering) {}
-    // if (i>0 && i%rowLength == 0) {
-    //   currentX = startX + gapSize;
-    //   currentY += structSize*cellSize + gapSize;
-    // }
-
-    // drawWeaveStruct(structs[i], currentX, currentY, cellSize);
-    // currentX += structSize*cellSize + gapSize;
-
-    [currentX, currentY] = drawStructOfList(structs[i], currentX, currentY, rowLength, startX, gapSize);
+  drawAll() {
+    // this.restart();
+    let x = this.counter;
+    for (let i=x; i<this.length; i++) {
+      this.step();
+    }
   }
-
-  // return y pos below the last row for any additional struct lists
-  return currentY + structSize*cellSize + gapSize;
-}
-
-function drawStructOfList(struct, inputX, inputY, rowLength, startX, gapSize) {
-  struct.x = inputX;
-  struct.y = inputY;
-
-  if (struct.id > 0 && struct.id%rowLength == 0) {
-    struct.x = startX + gapSize;
-    struct.y += struct.graphicSize + gapSize;
-  }
-
-  struct.draw();
-  return [ struct.x + struct.graphicSize + gapSize, struct.y ];
 }
