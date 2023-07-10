@@ -1,8 +1,28 @@
 html, body {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  height: 100vh;
+  overflow: hidden;
 }
 
 canvas {
   display: block;
+}
+
+#topbar {
+  box-sizing: border-box;
+  background-color: #cccccc;
+  padding: 1em;
+  height: 20%;
+}
+
+#canvas {
+  box-sizing: border-box;
+  overflow: scroll;
+  height: 80%;
+}
+
+h1 {
+  text-align: center;
 }
