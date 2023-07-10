@@ -2,30 +2,36 @@
  * The P5.js stuff
  */
 
-const DRAFT_SIZE = 3;
-const BUFFER_SIZE = 50;
+const DRAFT_SIZE = 4;
+const BUFFER_SIZE = 1;
 
 let structs;
 /** @type {HTMLCanvasElement} */
-let cx, cv;
+let cv;
 
 // animation state
 let doneFilling = false;
 let doneCategorizing = false;
 
 function setup() {
+  // const canvas = document.createElement('canvas');
+  // document.getElementById('topbar').append(canvas);
+  // const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  // console.log(ctx);
+
   cv = createCanvas(window.innerWidth, windowHeight);
+  console.log(cv.elt);
+  cv.elt.getContext('2d', { willReadFrequently: true});
   cv.parent('canvas');
   background(220);
 
   // paraphrasing Chrome console message: "Canvas2D will load faster if this drawing context has the 'willReadFrequently' boolean set to true"
   // cx.getContext('2d', { willReadFrequently: true });
-  cx = document.getElementById('defaultCanvas0');
-  console.log(cx);
 
   let blankStruct = new WeaveStruct(DRAFT_SIZE);
 
   let allFills = allPossFills(blankStruct);
+  console.log("generated " + allFills.length + " structures");
   allFills = allFills.filter(x => x.isValid());
   allFills.sort((a, b) => a.toString()-b.toString());
   allFills = allFills.map((x, i) => {
@@ -33,15 +39,24 @@ function setup() {
     return x;
   });
 
-  console.log(allFills.length);
+  console.log(allFills.length + "valid structures");
+
+  let sortedFills = categorizeFills(allFills);
+  console.log(sortedFills);
+  let uniqueStructs = Object.values(sortedFills.entries).slice(1).map((x) => x.struct );
+  uniqueStructs.sort((a, b) => a.toString()-b.toString());
+
+  console.log(uniqueStructs);
 
   structs = new StructList();
-  structs.setup(allFills);
+  // structs.setup(allFills);
+  structs.setup(uniqueStructs);
 
   // console.log(structs.length);
   
-  let adjustWidth = cx.parentElement.clientWidth;
-  let newHeight = (ceil(structs.length/structs.rowLength)+1)*(structs.graphicSize+structs.gapSize);
+  let adjustWidth = cv.elt.parentElement.clientWidth;
+  // let newHeight = cv.parentElement.clientHeight-1;
+  let newHeight = (ceil(structs.length/structs.rowLength))*(structs.graphicSize+structs.gapSize);
   resizeCanvas(adjustWidth, newHeight);
   
   console.log("drawing now");
@@ -58,8 +73,8 @@ function draw() {
   // noLoop();
   // return;
 
-  rect(0, 0, 70, 30);
-  text(round(frameRate(), 2), 10, 20);
+  // rect(0, 0, 70, 30);
+  // text(round(frameRate(), 2), 10, 20);
   if (drawOnce) {
     // drawStructList(structs, startX, startY, rowLength);
     structs.drawAll();

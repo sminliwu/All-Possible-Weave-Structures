@@ -184,6 +184,77 @@ class WeaveStructData {
   }
 }
 
+class StructDictEntry {
+  constructor(struct, id = -1) {
+    this.struct = struct;
+    this.id = id;
+    this.rots = []; // store the string reps
+    this.shifts = [];
+  }
+}
+
+class StructDict {
+  constructor(size = DRAFT_SIZE, countRotations = true) {
+    this.entries = { length: 0 };
+    this.rots = { length: 0 };
+    this.shifts = { length: 0 };
+    this.size = size;
+    this.counter = 0;
+    this.duplicates = 0;
+
+    this.countRotations = countRotations;
+  }
+
+  get numStructs() {
+    console.log(this.entries.length);
+    console.log(this.rots.length);
+    return (this.entries.length + this.rots.length + this.shifts.length);
+  }
+
+  add(struct) {
+    // indexed by the weavestruct's string representation
+    const newKey = struct.toString();
+
+    // if this struct is already in the unique entries
+    if (this.entries[newKey]) {
+      this.duplicates++;
+    } else if (this.shifts[newKey] || this.rots[newKey]) {
+      // if this struct is a shift or rotation of an entry
+    } else {
+      const newId = this.entries.length;
+      this.entries[newKey] = new StructDictEntry(struct, newId);
+      this.entries.length++;
+
+      // generate all shifted versions, greatly speeds up the whole thing
+      for (let i=0; i<this.size; i++) {
+        for (let j=0; j<this.size; j++) {
+          const w = struct.rowShift(i).colShift(j);
+          const wKey = w.toString();
+          if (this.shifts[wKey] || wKey == newKey) {} // due to symmetry, not all shifts will be unique
+          else {
+            this.shifts[wKey] = new StructDictEntry(w, newId);
+            this.entries[newKey].shifts.push(wKey);
+            this.shifts.length++;
+          }
+        }
+      }
+
+      // generate rotated versions
+      for (let i=1; i < 4; i++) {
+        const w = struct.rotate(i);
+        const wKey = w.toString();
+        if (this.rots[wKey] || wKey == newKey) {} // due to symmetry, some rotations might be the same
+        else {
+          this.rots[wKey] = new StructDictEntry(w, newId);
+          this.entries[newKey].rots.push(wKey);
+          this.rots.length++;
+        }
+      }
+    }
+    this.counter++;
+  }
+}
+
 function lineIsFilledWith(list, val) {
   for (var i=0; i<list.length; i++) {
     if (list[i] != val) { return false; }
@@ -249,52 +320,6 @@ function allPossFills(struct, filter = true) {
   return allPoss;
 }
 
-class StructDictEntry {
-  constructor(struct, id = -1) {
-    this.struct = struct;
-    this.id = id;
-    this.rots = [];
-    this.shifts = [];
-  }
-}
-
-class StructDict {
-  constructor(size = 4) {
-    this.entries = { length: 0 };
-    this.rots = { length: 0 };
-    this.shifts = { length: 0 };
-    this.size = size;
-    this.counter = 0;
-    this.duplicates = 0;
-  }
-
-  get numStructs() {
-    console.log(this.entries.length);
-    console.log(this.rots.length);
-    return (this.entries.length + this.rots.length + this.shifts.length);
-  }
-
-  add(struct) {
-    const newKey = struct.toString();
-    if (this.entries[newKey]) {
-      this.duplicates++;
-    } else if (this.shifts[newKey] || this.rots[newKey]) {
-    } else {
-      const newId = this.entries.length;
-      this.entries[newKey] = new StructDictEntry(struct, newId);
-      this.entries.length++;
-      for (let i=0; i<this.size; i++) {
-        for (let j=0; j<this.size; j++) {
-          const w = struct.rowShift(i).colShift(j);
-          this.shifts[w.toString()] = new StructDictEntry(w, newId);
-          this.shifts.length++;
-        }
-      }
-    }
-    this.counter++;
-  }
-}
-
 function categorizeFills(poss) {
   const res = new StructDict(poss[0].size);
   const length = poss.length;
@@ -312,4 +337,6 @@ function categorizeFills(poss) {
   console.log(res.duplicates.toString() + " duplicates");
   console.log(res.numStructs.toString() + " structures registered");
   console.log(res.entries.length.toString() + " unique weaves");
+
+  return res;
 }

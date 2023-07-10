@@ -404,14 +404,14 @@ print("FILLING")
 #     allFills.extend(allPossFills(s.unsetAll()))
 #     # print(len(allFills))
 # else:
-allFills = allPossFills(WeaveStruct(SIZE))
+allFills = allPossFills(WeaveStruct(5))
 
 allFills = list(filter(lambda x: x.isValid(), allFills))
 print("filtered invalid: " + str(len(allFills)) + " structures")
 
 allFills.sort(key=lambda x: (x.toString()))
 
-printStructs(allFills, 8)
+# printStructs(allFills, 8)
 # allFills = list(filter(lambda x: (allFills.count(x) > 1), allFills))
 # print("filtered duplicates: " + str(len(allFills)) + " structures")
 # printStructs(allFills, 14)
